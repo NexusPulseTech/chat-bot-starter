@@ -8,6 +8,11 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: development
+    ignore:
+      # Node type definitions track the oldest supported Node.js major.
+      # Raise it on purpose when the minimum Node.js version changes.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     commit-message:
       prefix: chore
       include: scope
@@ -23,5 +28,10 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    ignore:
+      # Stay on a Node.js LTS line. Odd majors are never LTS, and moving
+      # between LTS lines is done on purpose, not by a bot.
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
     commit-message:
       prefix: chore

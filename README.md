@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/NexusPulseTech/chat-bot-starter/actions/workflows/ci.yml/badge.svg)](https://github.com/NexusPulseTech/chat-bot-starter/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Node.js 20+](https://img.shields.io/badge/node-%3E%3D20-339933)
+![Node.js 22+](https://img.shields.io/badge/node-%3E%3D22-339933)
 ![Runtime dependencies: 0](https://img.shields.io/badge/runtime%20dependencies-0-brightgreen)
 
 A production-ready webhook server for chatbots on **Zalo Official Account** and **Facebook Messenger**, written in TypeScript. One handler answers both channels.
@@ -40,7 +40,7 @@ Every channel implements the same small interface in [`src/channels/types.ts`](s
 
 ## Quick start
 
-Requires Node.js 20 or later.
+Requires Node.js 22 or later.
 
 ```bash
 git clone https://github.com/NexusPulseTech/chat-bot-starter.git
@@ -131,7 +131,7 @@ src/
   security/signature.ts Messenger and Zalo signature checks
   channels/             One adapter per platform
   handlers/             Keyword rules, and forwarding to a workflow
-test/                   60 tests, run on Node 20 and 22 in CI
+test/                   60 tests, run on Node 22 and 24 in CI
 ```
 
 ## Testing
@@ -142,7 +142,7 @@ npm test
 
 The suite covers signature checks against tampered bodies and wrong secrets, payload parsing for both platforms, duplicate deliveries sent concurrently, the 1 MB body limit, and configuration errors. The HTTP tests start a real server on a random port.
 
-CI runs the suite on Node 20 and 22, then builds the Docker image and checks that the container starts and reports healthy.
+CI runs the suite on Node 22 and 24, then builds the Docker image and checks that the container starts and reports healthy.
 
 ## Production notes
 
