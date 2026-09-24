@@ -55,15 +55,28 @@ jobs:
         run: |
           docker run --detach --name bot --publish 3000:3000 \
             --env ZALO_APP_ID=ci --env ZALO_OA_SECRET_KEY=ci --env ZALO_OA_ACCESS_TOKEN=ci \
+            --env ADMIN_PASSWORD=ci-password-123456 \
             bot:ci
           for attempt in $(seq 1 20); do
             if curl --silent --fail http://127.0.0.1:3000/healthz; then
               echo
               echo "Container is healthy."
-              exit 0
+              break
+            fi
+            if [ "$attempt" = 20 ]; then
+              echo "Container did not become healthy. Logs:"
+              docker logs bot
+              exit 1
             fi
             sleep 1
           done
-          echo "Container did not become healthy. Logs:"
-          docker logs bot
-          exit 1
+
+      - name: Check the dashboard and the database volume
+        run: |
+          curl --silent --fail http://127.0.0.1:3000/admin/login | grep --quiet "NexusPulse"
+          docker exec bot test -f /app/data/bot.db
+          echo "Dashboard is served and the database was created on the volume."
+
+      - name: Show container logs
+        if: always()
+        run: docker logs bot
