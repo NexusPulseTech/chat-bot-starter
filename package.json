@@ -1,0 +1,37 @@
+{
+  "name": "chat-bot-starter",
+  "version": "1.0.0",
+  "description": "Production-ready webhook starter for Zalo OA and Facebook Messenger bots. Signature verification, replay protection and one handler for both channels.",
+  "keywords": [
+    "zalo",
+    "zalo-oa",
+    "messenger",
+    "facebook-messenger",
+    "chatbot",
+    "webhook",
+    "typescript",
+    "vietnam"
+  ],
+  "homepage": "https://github.com/NexusPulseTech/chat-bot-starter#readme",
+  "bugs": "https://github.com/NexusPulseTech/chat-bot-starter/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NexusPulseTech/chat-bot-starter.git"
+  },
+  "author": "NexusPulse (https://nexuspulsetech.github.io)",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test dist/test/*.test.js",
+    "start": "node dist/src/index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}
