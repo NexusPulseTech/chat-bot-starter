@@ -21,11 +21,14 @@ export function normalize(text: string): string {
     .trim();
 }
 
-/** Example rules for a shop. Replace them with your own. */
+/**
+ * Example rules for a shop. Replace them with your own.
+ * They answer when AI replies are off. Ordering and asking for a person are
+ * handled before rules, in src/bot/engine.ts.
+ */
 export const DEFAULT_RULES: readonly Rule[] = [
-  { pattern: /\b(xin chao|chao|hello|hi)\b/, reply: "Xin chào! Bạn cần tư vấn sản phẩm, xem giá hay đặt hàng ạ?" },
+  { pattern: /\b(xin chao|chao|hello|hi)\b/, reply: "Xin chào! Bạn cần tư vấn sản phẩm, xem giá hay đặt hàng ạ? Nhắn \"đặt hàng\" để lên đơn nhé." },
   { pattern: /\b(gia|bao nhieu|price)\b/, reply: "Bạn gửi giúp tên sản phẩm, shop báo giá ngay ạ." },
-  { pattern: /\b(dat hang|mua|order)\b/, reply: "Bạn để lại tên, số điện thoại và địa chỉ, shop lên đơn cho bạn nhé." },
   { pattern: /\b(gio mo cua|mo cua|open)\b/, reply: "Shop mở cửa từ 8:00 đến 21:00 mỗi ngày." },
 ];
 
