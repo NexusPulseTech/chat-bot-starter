@@ -1,22 +1,13 @@
 import assert from "node:assert/strict";
 import type { AddressInfo } from "node:net";
-import { after, before, beforeEach, describe, it } from "node:test";
-import { MessengerChannel } from "../src/channels/messenger.js";
-import type { InboundMessage, OutboundMessage } from "../src/channels/types.js";
-import { DedupeStore } from "../src/dedupe.js";
-import { createApp, type App } from "../src/server.js";
+import { after, before, describe, it } from "node:test";
+import { buildRuntime, type Runtime } from "../src/app.js";
+import { loadConfig } from "../src/config.js";
+import { openDatabase } from "../src/db/database.js";
 import { hmacSha256 } from "../src/security/signature.js";
+import { RecordingMessenger } from "./helpers.js";
 
 const SECRET = "test-app-secret";
-
-/** A real Messenger adapter whose send() records calls instead of calling Meta. */
-class RecordingMessenger extends MessengerChannel {
-  readonly sent: { to: string; text: string }[] = [];
-
-  override async send(recipientId: string, message: OutboundMessage): Promise<void> {
-    this.sent.push({ to: recipientId, text: message.text });
-  }
-}
 
 function delivery(mid: string, text: string): string {
   return JSON.stringify({
@@ -25,34 +16,19 @@ function delivery(mid: string, text: string): string {
   });
 }
 
-describe("HTTP server", () => {
-  let app: App;
+describe("webhook server", () => {
+  let runtime: Runtime;
   let base: string;
-  let channel: RecordingMessenger;
-  let handled: InboundMessage[];
-  const dedupe = new DedupeStore();
+  const channel = new RecordingMessenger(SECRET);
 
   before(async () => {
-    channel = new RecordingMessenger({ appSecret: SECRET, pageAccessToken: "t", verifyToken: "verify-me" });
-    app = createApp({
-      channels: [channel],
-      dedupe,
-      handler: (message) => {
-        handled.push(message);
-        return { text: `You said: ${message.text}` };
-      },
-    });
-    await new Promise<void>((resolve) => app.server.listen(0, "127.0.0.1", resolve));
-    base = `http://127.0.0.1:${(app.server.address() as AddressInfo).port}`;
+    const config = { ...loadConfig({ ZALO_APP_ID: "a", ZALO_OA_SECRET_KEY: "k", ZALO_OA_ACCESS_TOKEN: "t" }), channels: [channel] };
+    runtime = buildRuntime(config, { db: openDatabase(":memory:") });
+    await new Promise<void>((resolve) => runtime.app.server.listen(0, "127.0.0.1", resolve));
+    base = `http://127.0.0.1:${(runtime.app.server.address() as AddressInfo).port}`;
   });
 
-  after(() => new Promise<void>((resolve) => app.server.close(() => resolve())));
-
-  beforeEach(() => {
-    handled = [];
-    channel.sent.length = 0;
-    dedupe.clear();
-  });
+  after(() => new Promise<void>((resolve) => runtime.app.server.close(() => resolve())));
 
   function post(body: string, signed = true): Promise<Response> {
     const headers: Record<string, string> = { "content-type": "application/json" };
@@ -66,8 +42,9 @@ describe("HTTP server", () => {
     assert.deepEqual(await res.json(), { status: "ok" });
   });
 
-  it("returns 404 for an unknown channel", async () => {
+  it("returns 404 for an unknown channel, and for /admin when the dashboard is off", async () => {
     assert.equal((await fetch(`${base}/webhook/telegram`, { method: "POST", body: "{}" })).status, 404);
+    assert.equal((await fetch(`${base}/admin`)).status, 404);
   });
 
   it("completes the Messenger subscription handshake", async () => {
@@ -76,11 +53,10 @@ describe("HTTP server", () => {
     assert.equal(await res.text(), "abc");
   });
 
-  it("rejects an unsigned delivery with 401 and does not run the handler", async () => {
-    const res = await post(delivery("m1", "hi"), false);
-    assert.equal(res.status, 401);
-    await app.idle();
-    assert.equal(handled.length, 0);
+  it("rejects an unsigned delivery with 401 and stores nothing", async () => {
+    assert.equal((await post(delivery("m-unsigned", "hi"), false)).status, 401);
+    await runtime.app.idle();
+    assert.equal(runtime.store.listConversations().length, 0);
   });
 
   it("rejects a delivery whose body was changed after signing", async () => {
@@ -93,21 +69,21 @@ describe("HTTP server", () => {
     assert.equal(res.status, 401);
   });
 
-  it("acknowledges a valid delivery, runs the handler and sends the reply", async () => {
-    const res = await post(delivery("m1", "Xin chào"));
-    assert.equal(res.status, 200);
-    await app.idle();
-    assert.equal(handled.length, 1);
-    assert.deepEqual(channel.sent, [{ to: "user-9", text: "You said: Xin chào" }]);
+  it("acknowledges a valid delivery, stores it and replies", async () => {
+    const before = channel.sent.length;
+    assert.equal((await post(delivery("m-valid", "Shop mở cửa mấy giờ?"))).status, 200);
+    await runtime.app.idle();
+    assert.equal(channel.sent.length, before + 1);
+    assert.match(channel.sent.at(-1)?.text ?? "", /8:00/);
   });
 
   it("replies once when the provider redelivers the same message", async () => {
+    const before = channel.sent.length;
     const body = delivery("m-dup", "hello");
     const responses = await Promise.all([post(body), post(body), post(body)]);
     assert.deepEqual(responses.map((r) => r.status), [200, 200, 200]);
-    await app.idle();
-    assert.equal(handled.length, 1);
-    assert.equal(channel.sent.length, 1);
+    await runtime.app.idle();
+    assert.equal(channel.sent.length, before + 1);
   });
 
   it("returns 400 for a signed body that is not JSON", async () => {
