@@ -1,14 +1,17 @@
 {
   "name": "chat-bot-starter",
   "version": "1.0.0",
-  "description": "Tested webhook starter for Zalo OA and Facebook Messenger bots. Signature verification, replay protection and one handler for both channels.",
+  "description": "Self-hosted chatbot and shared inbox for Zalo OA and Facebook Messenger, with order taking, AI replies and a staff dashboard. Data lives in one SQLite file.",
   "keywords": [
     "zalo",
     "zalo-oa",
     "messenger",
     "facebook-messenger",
     "chatbot",
-    "webhook",
+    "shared-inbox",
+    "order-taking",
+    "claude",
+    "sqlite",
     "typescript",
     "vietnam"
   ],
@@ -22,16 +25,20 @@
   "license": "MIT",
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13"
   },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "npm run build && node --test dist/test/*.test.js",
-    "start": "node dist/src/index.js"
+    "test": "npm run build && node --disable-warning=ExperimentalWarning --test dist/test/*.test.js",
+    "start": "node --disable-warning=ExperimentalWarning dist/src/index.js",
+    "demo": "npm run build && node --disable-warning=ExperimentalWarning dist/src/demo.js"
   },
   "devDependencies": {
     "@types/node": "^24.13.6",
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0"
   }
 }
