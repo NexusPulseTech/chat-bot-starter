@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Typecheck and test (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+  docker:
+    name: Build and start the container
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Build the image
+        run: docker build --tag bot:ci .
+
+      - name: Start the container and check it is healthy
+        run: |
+          docker run --detach --name bot --publish 3000:3000 \
+            --env ZALO_APP_ID=ci --env ZALO_OA_SECRET_KEY=ci --env ZALO_OA_ACCESS_TOKEN=ci \
+            bot:ci
+          for attempt in $(seq 1 20); do
+            if curl --silent --fail http://127.0.0.1:3000/healthz; then
+              echo
+              echo "Container is healthy."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Container did not become healthy. Logs:"
+          docker logs bot
+          exit 1

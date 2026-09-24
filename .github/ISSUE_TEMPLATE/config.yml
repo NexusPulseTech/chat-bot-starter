@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Need a custom bot for your business?
+    url: https://nexuspulsetech.github.io
+    about: NexusPulse builds and runs chatbots for Zalo OA, Messenger and websites.
+  - name: Report a security issue
+    url: https://github.com/NexusPulseTech/chat-bot-starter/security/advisories/new
+    about: Please report vulnerabilities privately, not in a public issue.

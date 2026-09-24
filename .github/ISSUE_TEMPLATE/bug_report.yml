@@ -1,0 +1,40 @@
+name: Bug report
+description: Something does not work as documented
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: channel
+    attributes:
+      label: Channel
+      options:
+        - Zalo OA
+        - Messenger
+        - Both
+        - Not channel specific
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: The relevant log lines. Secrets are redacted by the logger, but check before pasting.
+      render: json
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: Node.js version
+      placeholder: "22.11.0"
+    validations:
+      required: true
