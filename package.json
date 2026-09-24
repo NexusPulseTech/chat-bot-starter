@@ -1,7 +1,7 @@
 {
   "name": "chat-bot-starter",
   "version": "1.0.0",
-  "description": "Production-ready webhook starter for Zalo OA and Facebook Messenger bots. Signature verification, replay protection and one handler for both channels.",
+  "description": "Tested webhook starter for Zalo OA and Facebook Messenger bots. Signature verification, replay protection and one handler for both channels.",
   "keywords": [
     "zalo",
     "zalo-oa",

@@ -5,7 +5,10 @@
 ![Node.js 22+](https://img.shields.io/badge/node-%3E%3D22-339933)
 ![Runtime dependencies: 0](https://img.shields.io/badge/runtime%20dependencies-0-brightgreen)
 
-A production-ready webhook server for chatbots on **Zalo Official Account** and **Facebook Messenger**, written in TypeScript. One handler answers both channels.
+A starter webhook server for chatbots on **Zalo Official Account** and **Facebook Messenger**, written in TypeScript. One handler answers both channels.
+
+> [!NOTE]
+> **Status:** a foundation to build a bot on, not a finished product. It is covered by unit and HTTP tests, but has not yet been run against a live Zalo OA or Messenger page. See [Production notes](#production-notes) before going live.
 
 It handles the parts that usually break in production, so you can start from the business logic:
 
